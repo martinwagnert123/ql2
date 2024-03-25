@@ -1,28 +1,24 @@
 document.addEventListener("DOMContentLoaded", function() {
   function updateVisibilityBasedOnMode() {
-    // Använder 'dark-mode' klassen på <html> elementet för att avgöra läget
     const isDarkMode = document.documentElement.classList.contains('dark-mode');
     const elementsToShowInDark = document.querySelectorAll('.show-in-dark');
     const elementsToShowInLight = document.querySelectorAll('.show-in-light');
 
     elementsToShowInDark.forEach(element => {
-      element.classList.toggle('hidden', !isDarkMode);
+      element.classList.toggle('active', isDarkMode);
     });
 
     elementsToShowInLight.forEach(element => {
-      element.classList.toggle('hidden', isDarkMode);
+      element.classList.toggle('active', !isDarkMode);
     });
   }
 
-  // Initial uppdatering baserat på det aktuella läget när sidan laddas
+  // Initial uppdatering och uppdatering vid klick
   updateVisibilityBasedOnMode();
-
-  // Uppdatera visningen varje gång någon av toggle-knapparna klickas
   const toggleButtons = document.querySelectorAll("[tr-color-toggle]");
   toggleButtons.forEach(toggleButton => {
     toggleButton.addEventListener('click', function () {
-      // Väntar en liten stund för att säkerställa att klassen har uppdaterats
-      setTimeout(updateVisibilityBasedOnMode, 100);
+      setTimeout(updateVisibilityBasedOnMode, 100); // Lägg till lite fördröjning om nödvändigt
     });
   });
 });
