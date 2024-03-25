@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
   function updateVisibilityBasedOnMode() {
-    const isDarkMode = document.body.classList.contains('dark-mode'); // Antag att du använder en klass på <body> för att indikera läge
+    // Använder 'dark-mode' klassen på <html> elementet för att avgöra läget
+    const isDarkMode = document.documentElement.classList.contains('dark-mode');
     const elementsToShowInDark = document.querySelectorAll('.show-in-dark');
     const elementsToShowInLight = document.querySelectorAll('.show-in-light');
 
@@ -13,16 +14,15 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // Kör funktionen en gång vid laddning
+  // Initial uppdatering baserat på det aktuella läget när sidan laddas
   updateVisibilityBasedOnMode();
 
-  // Antag att du har en toggle-knapp för att växla mellan lägena, koppla en eventlyssnare till den här
-  const modeToggleButton = document.querySelector('tr-color-toggle'); // Ersätt med din toggle-knapps selector
-  modeToggleButton.addEventListener('click', function() {
-    document.body.classList.toggle('dark-mode'); // Växlar mörkt läge
-    updateVisibilityBasedOnMode(); // Uppdatera elementens visibilitet baserat på det nya läget
+  // Uppdatera visningen varje gång någon av toggle-knapparna klickas
+  const toggleButtons = document.querySelectorAll("[tr-color-toggle]");
+  toggleButtons.forEach(toggleButton => {
+    toggleButton.addEventListener('click', function () {
+      // Väntar en liten stund för att säkerställa att klassen har uppdaterats
+      setTimeout(updateVisibilityBasedOnMode, 100);
+    });
   });
 });
-
-
-
