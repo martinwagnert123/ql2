@@ -1,3 +1,10 @@
+/**
+ * Dark Mode Toggle 1.0.2
+ * Copyright 2023 Timothy Ricks
+ * Released under the MIT License
+ * Released on: November 28, 2023
+ */
+
 function colorModeToggle() {
   function attr(defaultVal, attrVal) {
     const defaultValType = typeof defaultVal;
@@ -11,7 +18,6 @@ function colorModeToggle() {
 
   const htmlElement = document.documentElement;
   const computed = getComputedStyle(htmlElement);
-  let toggleEl;
 
   const scriptTag = document.querySelector("[tr-color-vars]");
   if (!scriptTag) {
@@ -20,7 +26,7 @@ function colorModeToggle() {
   }
 
   let colorModeDuration = attr(0.5, scriptTag.getAttribute("duration"));
-  let colorModeEase = attr("ease-out", scriptTag.getAttribute("ease"));
+  let colorModeEase = attr("power1.out", scriptTag.getAttribute("ease"));
 
   const cssVariables = scriptTag.getAttribute("tr-color-vars");
   if (!cssVariables) {
@@ -28,60 +34,61 @@ function colorModeToggle() {
     return;
   }
 
-  let lightColors = {}, darkColors = {};
-  cssVariables.split(",").forEach(function(item) {
-    let lightValue = computed.getPropertyValue(`--color-${item}`).trim();
-    let darkValue = computed.getPropertyValue(`--dark-${item}`).trim();
-    lightColors[`--color-${item}`] = lightValue || darkValue;
-    darkColors[`--dark-${item}`] = darkValue || lightValue;
+  let lightColors = {};
+  let darkColors = {};
+  cssVariables.split(",").forEach(function (item) {
+    let lightValue = computed.getPropertyValue(`--color--${item}`).trim();
+    let darkValue = computed.getPropertyValue(`--dark--${item}`).trim();
+    lightColors[`--color--${item}`] = lightValue;
+    darkColors[`--dark--${item}`] = darkValue;
   });
 
   function setColors(colorObject, animate) {
-    Object.keys(colorObject).forEach(function(key) {
+    Object.keys(colorObject).forEach(function (key) {
       htmlElement.style.setProperty(key, colorObject[key]);
     });
   }
 
-  function toggleVisibilityBasedOnColorMode(dark) {
-    const elementsToShowInDark = document.querySelectorAll(".show-in-dark");
-    const elementsToShowInLight = document.querySelectorAll(".show-in-light");
+  function toggleVisibilityBasedOnMode(isDarkMode) {
+    const elementsToShowInDark = document.querySelectorAll('.show-in-dark');
+    const elementsToShowInLight = document.querySelectorAll('.show-in-light');
 
     elementsToShowInDark.forEach(element => {
-      element.classList.toggle("hidden", !dark);
+      element.classList.toggle('hidden', !isDarkMode);
     });
 
     elementsToShowInLight.forEach(element => {
-      element.classList.toggle("hidden", dark);
+      element.classList.toggle('hidden', isDarkMode);
     });
   }
 
-  function goDark(dark, animate = false) {
-    const mode = dark ? "dark" : "light";
+  function goDark(dark, animate) {
     localStorage.setItem("dark-mode", dark ? "true" : "false");
     htmlElement.classList.toggle("dark-mode", dark);
     setColors(dark ? darkColors : lightColors, animate);
-    toggleVisibilityBasedOnColorMode(dark);
-    [...(toggleEl || [])].forEach(element => {
+    toggleVisibilityBasedOnMode(dark);
+
+    const toggleEl = document.querySelectorAll("[tr-color-toggle]");
+    toggleEl.forEach(function (element) {
       element.setAttribute("aria-pressed", dark.toString());
     });
   }
 
   window.addEventListener("DOMContentLoaded", () => {
-    toggleEl = document.querySelectorAll("[tr-color-toggle]");
+    const colorPreference = window.matchMedia("(prefers-color-scheme: dark)");
+    const storagePreference = localStorage.getItem("dark-mode");
+    const preferDark = storagePreference ? storagePreference === "true" : colorPreference.matches;
+    goDark(preferDark, false);
+
+    const toggleEl = document.querySelectorAll("[tr-color-toggle]");
     toggleEl.forEach(element => {
       element.addEventListener("click", () => {
-        const darkModeIsActive = htmlElement.classList.contains("dark-mode");
-        goDark(!darkModeIsActive, true);
+        const isDarkMode = htmlElement.classList.contains("dark-mode");
+        goDark(!isDarkMode, true);
       });
     });
 
-    const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const storedPreference = localStorage.getItem("dark-mode");
-    if (storedPreference) {
-      goDark(storedPreference === "true", false);
-    } else {
-      goDark(preferredDark, false);
-    }
+    colorPreference.addEventListener("change", e => goDark(e.matches, false));
   });
 }
 
