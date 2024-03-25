@@ -1,25 +1,17 @@
-/**
- * Dark Mode Toggle 1.0.2
- * Copyright 2023 Timothy Ricks
- * Released under the MIT License
- * Released on: November 28, 2023
- */
-
 function colorModeToggle() {
   function attr(defaultVal, attrVal) {
     const defaultValType = typeof defaultVal;
     if (typeof attrVal !== "string" || attrVal.trim() === "") return defaultVal;
     if (attrVal === "true" && defaultValType === "boolean") return true;
     if (attrVal === "false" && defaultValType === "boolean") return false;
-    if (isNaN(attrVal) && defaultValType === "string") return attrVal;
     if (!isNaN(attrVal) && defaultValType === "number") return +attrVal;
+    if (defaultValType === "string") return attrVal;
     return defaultVal;
   }
 
   const htmlElement = document.documentElement;
   const computed = getComputedStyle(htmlElement);
   let toggleEl;
-  let togglePressed = "false";
 
   const scriptTag = document.querySelector("[tr-color-vars]");
   if (!scriptTag) {
@@ -28,140 +20,69 @@ function colorModeToggle() {
   }
 
   let colorModeDuration = attr(0.5, scriptTag.getAttribute("duration"));
-  let colorModeEase = attr("power1.out", scriptTag.getAttribute("ease"));
+  let colorModeEase = attr("ease-out", scriptTag.getAttribute("ease"));
 
   const cssVariables = scriptTag.getAttribute("tr-color-vars");
-  if (!cssVariables.length) {
+  if (!cssVariables) {
     console.warn("Value of tr-color-vars attribute not found");
     return;
   }
 
-  let lightColors = {};
-  let darkColors = {};
-  cssVariables.split(",").forEach(function (item) {
-    let lightValue = computed.getPropertyValue(`--color--${item}`);
-    let darkValue = computed.getPropertyValue(`--dark--${item}`);
-    if (lightValue.length) {
-      if (!darkValue.length) darkValue = lightValue;
-      lightColors[`--color--${item}`] = lightValue;
-      darkColors[`--color--${item}`] = darkValue;
-    }
+  let lightColors = {}, darkColors = {};
+  cssVariables.split(",").forEach(function(item) {
+    let lightValue = computed.getPropertyValue(`--color-${item}`).trim();
+    let darkValue = computed.getPropertyValue(`--dark-${item}`).trim();
+    lightColors[`--color-${item}`] = lightValue || darkValue;
+    darkColors[`--dark-${item}`] = darkValue || lightValue;
   });
-
-  if (!Object.keys(lightColors).length) {
-    console.warn("No variables found matching tr-color-vars attribute value");
-    return;
-  }
 
   function setColors(colorObject, animate) {
-    if (typeof gsap !== "undefined" && animate) {
-      gsap.to(htmlElement, {
-        ...colorObject,
-        duration: colorModeDuration,
-        ease: colorModeEase
-      });
-    } else {
-      Object.keys(colorObject).forEach(function (key) {
-        htmlElement.style.setProperty(key, colorObject[key]);
-      });
-    }
-  }
-
-  function goDark(dark, animate) {
-    if (dark) {
-      localStorage.setItem("dark-mode", "true");
-      htmlElement.classList.add("dark-mode");
-      setColors(darkColors, animate);
-      togglePressed = "true";
-    } else {
-      localStorage.setItem("dark-mode", "false");
-      htmlElement.classList.remove("dark-mode");
-      setColors(lightColors, animate);
-      togglePressed = "false";
-    }
-
-
-
-
-
-  toggleVisibilityBasedOnColorMode(dark);
-
-  if (typeof toggleEl !== "undefined") {
-    toggleEl.forEach(function (element) {
-      element.setAttribute("aria-pressed", togglePressed);
+    Object.keys(colorObject).forEach(function(key) {
+      htmlElement.style.setProperty(key, colorObject[key]);
     });
   }
-}
 
+  function toggleVisibilityBasedOnColorMode(dark) {
+    const elementsToShowInDark = document.querySelectorAll(".show-in-dark");
+    const elementsToShowInLight = document.querySelectorAll(".show-in-light");
 
+    elementsToShowInDark.forEach(element => {
+      element.classList.toggle("hidden", !dark);
+    });
 
-
-
-    if (typeof toggleEl !== "undefined") {
-      toggleEl.forEach(function (element) {
-        element.setAttribute("aria-pressed", togglePressed);
-      });
-    }
+    elementsToShowInLight.forEach(element => {
+      element.classList.toggle("hidden", dark);
+    });
   }
 
-  function checkPreference(e) {
-    goDark(e.matches, false);
-  }
-  const colorPreference = window.matchMedia("(prefers-color-scheme: dark)");
-  colorPreference.addEventListener("change", (e) => {
-    checkPreference(e);
-  });
-
-  let storagePreference = localStorage.getItem("dark-mode");
-  if (storagePreference !== null) {
-    storagePreference === "true" ? goDark(true, false) : goDark(false, false);
-  } else {
-    checkPreference(colorPreference);
+  function goDark(dark, animate = false) {
+    const mode = dark ? "dark" : "light";
+    localStorage.setItem("dark-mode", dark ? "true" : "false");
+    htmlElement.classList.toggle("dark-mode", dark);
+    setColors(dark ? darkColors : lightColors, animate);
+    toggleVisibilityBasedOnColorMode(dark);
+    [...(toggleEl || [])].forEach(element => {
+      element.setAttribute("aria-pressed", dark.toString());
+    });
   }
 
-  window.addEventListener("DOMContentLoaded", (event) => {
+  window.addEventListener("DOMContentLoaded", () => {
     toggleEl = document.querySelectorAll("[tr-color-toggle]");
-    toggleEl.forEach(function (element) {
-      element.setAttribute("aria-label", "View Dark Mode");
-      element.setAttribute("role", "button");
-      element.setAttribute("aria-pressed", togglePressed);
-    });
-    toggleEl.forEach(function (element) {
-      element.addEventListener("click", function () {
-        let darkClass = htmlElement.classList.contains("dark-mode");
-        darkClass ? goDark(false, true) : goDark(true, true);
+    toggleEl.forEach(element => {
+      element.addEventListener("click", () => {
+        const darkModeIsActive = htmlElement.classList.contains("dark-mode");
+        goDark(!darkModeIsActive, true);
       });
     });
+
+    const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const storedPreference = localStorage.getItem("dark-mode");
+    if (storedPreference) {
+      goDark(storedPreference === "true", false);
+    } else {
+      goDark(preferredDark, false);
+    }
   });
 }
+
 colorModeToggle();
-
-
-
-
-
-
-function toggleVisibilityBasedOnColorMode(dark) {
-  const elementsToShowInDark = document.querySelectorAll(".show-in-dark");
-  const elementsToShowInLight = document.querySelectorAll(".show-in-light");
-
-  // Visa element i mörkt läge och dölj dem i ljust läge
-  elementsToShowInDark.forEach(element => {
-    if (dark) {
-      element.classList.remove("hidden");
-    } else {
-      element.classList.add("hidden");
-    }
-  });
-
-  // Visa element i ljust läge och dölj dem i mörkt läge
-  elementsToShowInLight.forEach(element => {
-    if (!dark) {
-      element.classList.remove("hidden");
-    } else {
-      element.classList.add("hidden");
-    }
-  });
-}
-
-
