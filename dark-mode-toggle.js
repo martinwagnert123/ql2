@@ -83,7 +83,6 @@ function colorModeToggle() {
 
 
 
-/*
 
   toggleVisibilityBasedOnColorMode(dark);
 
@@ -94,7 +93,7 @@ function colorModeToggle() {
   }
 }
 
-*/
+
 
 
 
@@ -141,8 +140,6 @@ colorModeToggle();
 
 
 
-/*
-
 
 function toggleVisibilityBasedOnColorMode(dark) {
   const elementsToShowInDark = document.querySelectorAll(".show-in-dark");
@@ -167,4 +164,4 @@ function toggleVisibilityBasedOnColorMode(dark) {
   });
 }
 
-*/
+
