@@ -17,9 +17,12 @@ document.addEventListener("DOMContentLoaded", function() {
   updateVisibilityBasedOnMode();
 
   // Antag att du har en toggle-knapp för att växla mellan lägena, koppla en eventlyssnare till den här
-  const modeToggleButton = document.querySelector('#mode-toggle'); // Ersätt med din toggle-knapps selector
+  const modeToggleButton = document.querySelector('tr-color-toggle'); // Ersätt med din toggle-knapps selector
   modeToggleButton.addEventListener('click', function() {
     document.body.classList.toggle('dark-mode'); // Växlar mörkt läge
     updateVisibilityBasedOnMode(); // Uppdatera elementens visibilitet baserat på det nya läget
   });
 });
+
+
+
